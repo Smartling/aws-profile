@@ -34,9 +34,18 @@ output = json
 region = us-east-1    
 
 
-Usage:
+Without mfa_serial tries aws_profile to authenticate without MFA
 
-    aws-profile [-h] -p PROFILE -c COMMAND [-m MFA] [-s]
+Usage:
+   
+    aws-profile PROFILE COMMAND  
+
+     -OR-
+
+    In  aws-profile2  - rewrited arguments input, with possibility to integrate more features
+    You have to put COMMAND between " " as example "comamnd p1 p2 p3 ...pN" to get it working
+
+    aws-profile2 [-h] -p PROFILE -c COMMAND [-m MFA] [-s]
 
 Wrapper script to generate & pass AWS AssumeRole keys to other scripts
 
