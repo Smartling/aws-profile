@@ -48,7 +48,9 @@ import botocore.session
 
 CACHE_DIR = os.path.expanduser(os.path.join('~', '.aws', 'aws-profile', 'cache'))
 EXPIRY_WINDOW_SECONDS = 3600
-skipmfa=False
+
+globalSkipMfa=False
+globalDebug=False
 
 
 def get_args():
@@ -59,6 +61,7 @@ def get_args():
     parser.add_argument('-c','--command', type=str, help='Command to execute',required=True)
     parser.add_argument('-m','--mfa', type=str, help='MFA token to authenticate',required=False)
     parser.add_argument('-s','--skipmfa', help='Skip usage of MFA',default=False, action='store_true')
+    parser.add_argument('-d','--debug', help='Debug information',default=False, action='store_true')
 
     args = parser.parse_args()
     # Get args to variables
@@ -77,7 +80,9 @@ def parse_args(argv=sys.argv):
 
     profile = argv[1]
     command = " ".join(argv[2:])
-    return (profile, command)
+    skipmfa = False
+    mfakey = None
+    return (profile, command, skipmfa, mfakey)
 
 
 def read_config():
@@ -89,8 +94,8 @@ def read_config():
         print "Profile '%s' does not exist in the config file." % profile
         quit(2)
 
-    if 'role_arn' not in profiles[profile] or 'source_profile' not in profiles[profile] or 'mfa_serial' not in profiles[profile]:
-        print "Profile '%s' does not have role_arn or source_profile or mfa_serial set." % profile
+    if 'role_arn' not in profiles[profile] or 'source_profile' not in profiles[profile]:
+        print "Profile '%s' does not have role_arn or source_profile." % profile
         quit(3)
 
     source = profiles[profile]['source_profile']
@@ -135,6 +140,11 @@ def get_creds_from_sts(key_path):
     # Generates our new set of credentials to use on the command line.
     # Duration is as low as possibly (15 minutes) as cli things shouldn't run for
     # Longer than that, and the max is 1 hour anyway
+
+    skipmfa = False
+
+    if 'mfa_serial' not in config:
+        skipmfa = True
 
     if not skipmfa:
         if mfakey is None:
@@ -218,10 +228,10 @@ def load_creds():
 # ----------------------------------------------
 
 
-profile, command, skipmfa, mfakey = get_args()
+# profile, command, skipmfa, mfakey = get_args()
 
 
-#profile, command = parse_args()
+profile, command, skipmfa, mfakey = parse_args()
 
 config = read_config()
 creds = load_creds()
