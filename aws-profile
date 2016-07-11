@@ -28,11 +28,17 @@
 #     source_profile =  source-profile-name
 #     mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXL@XXXXXXXXX.de
 
+# TODO
+#   parse argumenstm add --skip-mfa
+#   validate mfa_token_number - 6 digits
+
 import os
 import sys
 import json
 import time
 import boto3
+import argparse
+
 
 from dateutil.parser import parse
 from dateutil.tz import tzlocal
@@ -42,7 +48,26 @@ import botocore.session
 
 CACHE_DIR = os.path.expanduser(os.path.join('~', '.aws', 'aws-profile', 'cache'))
 EXPIRY_WINDOW_SECONDS = 3600
+skipmfa=False
 
+
+def get_args():
+    # Get arguments from command line
+    parser = argparse.ArgumentParser(description='Wrapper script to generate & pass AWS AssumeRole keys to other scripts')
+    # Add arguments
+    parser.add_argument('-p','--profile', type=str, help='Assume-Role profile',required=True)
+    parser.add_argument('-c','--command', type=str, help='Command to execute',required=True)
+    parser.add_argument('-m','--mfa', type=str, help='MFA token to authenticate',required=False)
+    parser.add_argument('-s','--skipmfa', help='Skip usage of MFA',default=False, action='store_true')
+
+    args = parser.parse_args()
+    # Get args to variables
+    profile = args.profile.strip()
+    command = args.command.strip()
+    mfakey= args.mfa
+    skipmfa = args.skipmfa
+    return (profile, command, skipmfa, mfakey)
+    
 
 def parse_args(argv=sys.argv):
     if len(argv) < 3:
@@ -111,13 +136,15 @@ def get_creds_from_sts(key_path):
     # Duration is as low as possibly (15 minutes) as cli things shouldn't run for
     # Longer than that, and the max is 1 hour anyway
 
-    # Get your MFA Token
-    mfaToken = raw_input("Put your MFA-Token here =>")
+    if not skipmfa:
+        if mfakey is None:
+           # Get your MFA Token
+           mfaToken = raw_input("Put your MFA-Token here =>")
+        else:
+	   mfaToken = mfakey.strip()
 
     profiledSession = boto3.Session( profile_name=config['source_profile'] )
     sts_connection = profiledSession.client('sts')
-
-    #sts_connection = STSConnection(profile_name=config['source_profile'])
 
     role_session_name = config.get('role_session_name')
 
@@ -127,17 +154,30 @@ def get_creds_from_sts(key_path):
     print("=======================================================")
     print("=> Assuming role .... : %s " % config['role_arn'])
     print("==> Source Profile .. : %s " % config['source_profile']  )
-    print("==> MFA Token ....... : %s " % config['mfa_serial']  )
+
+    if not skipmfa:
+        print("==> MFA Serial ...... : %s " % config['mfa_serial']  )
+        print("==> MFA Token ....... : %s " % str(mfaToken)  )
+    else:
+        print("==> Skip MFA ........ : %s " % str(skipmfa)  )
+
     print("==> Session: ........ : %s " % role_session_name )
     print("=======================================================")
 
-    assumedRoleObject = sts_connection.assume_role(
-        RoleArn=config['role_arn'],
-        RoleSessionName=role_session_name,
-        DurationSeconds=3600,
-        SerialNumber=config['mfa_serial'],
-        TokenCode=str(mfaToken)
-    )
+    if not skipmfa:
+        assumedRoleObject = sts_connection.assume_role(
+            RoleArn=config['role_arn'],
+            RoleSessionName=role_session_name,
+            DurationSeconds=3600,
+            SerialNumber=config['mfa_serial'],
+            TokenCode=str(mfaToken)
+        )
+    else:
+        assumedRoleObject = sts_connection.assume_role(
+            RoleArn=config['role_arn'],
+            RoleSessionName=role_session_name,
+            DurationSeconds=3600
+        )
 
     credentials = assumedRoleObject['Credentials']
 
@@ -150,8 +190,6 @@ def get_creds_from_sts(key_path):
 
     # Save the creds to the cache file
     save_creds_to_cache(key_path, creds)
-
-    # print ( creds )
 
     return creds
 
@@ -179,7 +217,12 @@ def load_creds():
 #
 # ----------------------------------------------
 
-profile, command = parse_args()
+
+profile, command, skipmfa, mfakey = get_args()
+
+
+#profile, command = parse_args()
+
 config = read_config()
 creds = load_creds()
 
