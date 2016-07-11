@@ -141,7 +141,6 @@ def get_creds_from_sts(key_path):
     # Duration is as low as possibly (15 minutes) as cli things shouldn't run for
     # Longer than that, and the max is 1 hour anyway
 
-    skipmfa = False
 
     if (not skipmfa) and ('mfa_serial' in config):
         if mfakey is None:
