@@ -40,11 +40,9 @@ Usage:
 
 Wrapper script to generate & pass AWS AssumeRole keys to other scripts
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PROFILE, --profile PROFILE
-                        Assume-Role profile
-  -c COMMAND, --command COMMAND
-                        Command to execute
-  -m MFA, --mfa MFA     MFA token to authenticate
-  -s, --skipmfa         Skip usage of MFA
+optional arguments:   
+  -h, --help            		show this help message and exit                  
+  -p PROFILE, --profile PROFILE         Assume-Role profile                     
+  -c COMMAND, --command COMMAND         Command to execute               
+  -m MFA, --mfa MFA     		MFA token to authenticate            
+  -s, --skipmfa         		Skip usage of MFA   
