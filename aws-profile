@@ -51,6 +51,7 @@ EXPIRY_WINDOW_SECONDS = 3600
 
 globalSkipMfa=False
 globalDebug=False
+globalQuiet=True
 
 
 def get_args():
@@ -161,18 +162,19 @@ def get_creds_from_sts(key_path):
     if not role_session_name:
         role_session_name = 'AWS-Profile-session-%s' % (int(time.time()))
 
-    print("=======================================================")
-    print("=> Assuming role .... : %s " % config['role_arn'])
-    print("==> Source Profile .. : %s " % config['source_profile']  )
+    if not globalQuiet:
+       print("=======================================================")
+       print("=> Assuming role .... : %s " % config['role_arn'])
+       print("==> Source Profile .. : %s " % config['source_profile']  )
 
-    if not skipmfa:
-        print("==> MFA Serial ...... : %s " % config['mfa_serial']  )
-        print("==> MFA Token ....... : %s " % str(mfaToken)  )
-    else:
-        print("==> Skip MFA ........ : %s " % str(skipmfa)  )
+       if not skipmfa:
+           print("==> MFA Serial ...... : %s " % config['mfa_serial']  )
+           print("==> MFA Token ....... : %s " % str(mfaToken)  )
+       else:
+           print("==> Skip MFA ........ : %s " % str(skipmfa)  )
 
-    print("==> Session: ........ : %s " % role_session_name )
-    print("=======================================================")
+       print("==> Session: ........ : %s " % role_session_name )
+       print("=======================================================")
 
     if not skipmfa:
         assumedRoleObject = sts_connection.assume_role(
@@ -253,10 +255,13 @@ os.putenv('AWS_SESSION_TOKEN', creds['session_token'])
 
 my_env = os.environ.copy()
 
-print("=======================================================")
-print("Executing system command %s, waiting for output" %command )
-print("=======================================================")
+if not globalQuiet:
+   print("=======================================================")
+   print("Executing system command %s, waiting for output" %command )
+   print("=======================================================")
+
 command_status = os.system(command)
-print("=======================================================")
+if not globalQuiet:
+   print("=======================================================")
 
 exit(os.WEXITSTATUS(command_status))
