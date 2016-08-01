@@ -25,7 +25,6 @@
 #     output = json
 #     region = us-east-1
 #     role_arn = arn:aws:iam::XXXXXXXXXXXX:role/Admins
-#     source_profile =  source-profile-name
 #     mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXL@XXXXXXXXX.de
 
 # TODO
@@ -94,16 +93,9 @@ def read_config():
         print "Profile '%s' does not exist in the config file." % profile
         quit(2)
 
-    if 'role_arn' not in profiles[profile] or 'source_profile' not in profiles[profile]:
-        print "Profile '%s' does not have role_arn or source_profile." % profile
+    if 'role_arn' not in profiles[profile]:
+        print "Profile '%s' does not have role_arn." % profile
         quit(3)
-
-    source = profiles[profile]['source_profile']
-
-    # Verify the source profile is correctly setup
-    if 'aws_access_key_id' not in profiles[source] or 'aws_secret_access_key' not in profiles[source]:
-        print "Profile '%s' does not have the api keys necessary for assuming a role." % source
-        quit(4)
 
     return profiles[profile]
 
@@ -149,8 +141,7 @@ def get_creds_from_sts(key_path):
         else:
 	   mfaToken = mfakey.strip()
 
-    profiledSession = boto3.Session( profile_name=config['source_profile'] )
-    sts_connection = profiledSession.client('sts')
+    sts_connection = boto3.client('sts')
 
     role_session_name = config.get('role_session_name')
 
@@ -159,7 +150,6 @@ def get_creds_from_sts(key_path):
 
     print("=======================================================")
     print("=> Assuming role .... : %s " % config['role_arn'])
-    print("==> Source Profile .. : %s " % config['source_profile']  )
 
     if not skipmfa:
         print("==> MFA Serial ...... : %s " % config['mfa_serial']  )
