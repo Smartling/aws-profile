@@ -116,6 +116,8 @@ def save_creds_to_cache(key_path, creds):
         os.makedirs(os.path.dirname(key_path))
     with os.fdopen(os.open(key_path, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
         f.write(file_content)
+        f.truncate()
+        f.close()
 
 
 def create_cache_key(config):
