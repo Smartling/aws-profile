@@ -205,7 +205,7 @@ def get_creds_from_sts(key_path):
 def is_creds_valid(creds):
     end_time = parse(creds['expiration'])
     now = datetime.now(tzlocal())
-    return now <= end_time
+    return now + datetime.timedelta(minutes = 5) <= end_time
 
 
 def load_creds():
