@@ -42,7 +42,7 @@ import argparse
 
 from dateutil.parser import parse
 from dateutil.tz import tzlocal
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import botocore.session
 
@@ -205,7 +205,7 @@ def get_creds_from_sts(key_path):
 def is_creds_valid(creds):
     end_time = parse(creds['expiration'])
     now = datetime.now(tzlocal())
-    return now + datetime.timedelta(minutes = 5) <= end_time
+    return now + timedelta(minutes = 5) <= end_time
 
 
 def load_creds():
