@@ -29,7 +29,6 @@
 #     mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXL@XXXXXXXXX.de
 
 # TODO
-#   parse argumenstm add --skip-mfa
 #   validate mfa_token_number - 6 digits
 
 import os
