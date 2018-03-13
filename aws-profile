@@ -91,11 +91,11 @@ def read_config():
 
     # Checks for the passed in profile, mostly for sanity
     if profile not in profiles:
-        print "Profile '%s' does not exist in the config file." % profile
+        print("Profile '%s' does not exist in the config file.", profile)
         quit(2)
 
     if 'role_arn' not in profiles[profile]:
-        print "Profile '%s' does not have role_arn." % profile
+        print("Profile '%s' does not have role_arn.", profile)
         quit(3)
 
     return profiles[profile]
@@ -144,9 +144,9 @@ def get_creds_from_sts(key_path):
     if not skipmfa:
         if mfakey is None:
            # Get your MFA Token
-           mfaToken = raw_input("Put your MFA-Token here =>")
+           mfaToken = input("Put your MFA-Token here =>")
         else:
-	   mfaToken = mfakey.strip()
+           mfaToken = mfakey.strip()
 
     session = boto3.Session( profile_name=config.get('source_profile') )
     sts_connection = session.client('sts')
